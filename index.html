@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>程序</title>
+  <link rel="stylesheet" href="./layui/css/layui.css">
+  <script src="./layui/layui.js"></script>
+  <script src="./node_modules/echarts-stat/dist/ecStat.js"></script>
+  <script src="./node_modules/echarts/dist/echarts.js"></script>
+</head>
+<style>
+  * {
+    margin: 0px;
+    padding: 0px;
+  }
+
+  button {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+  }
+
+  #EchartsOne,
+  #EchartsTwo {
+    width: 47vw;
+    height: 89vh;
+    display: inline-block;
+    margin-top: 38px;
+  }
+
+  h2 {
+    padding-left: 10vw;
+    line-height: 38px;
+  }
+</style>
+
+<body>
+  <button type="button" class="layui-btn" id="test1">
+    <i class="layui-icon">&#xe67c;</i>上传EXCEL
+  </button>
+  <h2></h2>
+  <div id="EchartsOne"></div>
+  <div id="EchartsTwo"></div>
+
+</body>
+<script>
+  layui.use('upload', function () {
+    var upload = layui.upload;
+    //上传文件
+    var uploadInst = upload.render({
+      elem: '#test1', //绑定元素
+      url: '/upload', //上传接口
+      done: function (res) {
+        //上传完毕回调
+        var chart = echarts.init(document.getElementById('EchartsOne'));
+        var chart1 = echarts.init(document.getElementById('EchartsTwo'));
+        var data = res['IBINDVI']
+        var data1 = res['IBILST']
+        var canshu = res['参数']
+        var myRegression = ecStat.regression('linear', data);
+        var myRegression1 = ecStat.regression('linear', data1);
+        var LineLabel = `y = ${canshu.a1.toFixed(4)}x + ${canshu.b1.toFixed(4)} \n R2 = ${canshu.r1.toFixed(4)}`
+        var LineLabel1 = `y = ${canshu.a2.toFixed(4)}x + ${canshu.b2.toFixed(4)} \n R2 = ${canshu.r2.toFixed(4)}`
+        document.querySelector('h2').innerHTML = `模拟温度为${canshu.模拟温度}`
+        chart.setOption({
+          title: {
+            text: 'NDVI',
+            left: 'center'
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross'
+            }
+          },
+          xAxis: {
+            type: 'value',
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            },
+          },
+          yAxis: {
+            type: 'value',
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            },
+          },
+          series: [{
+            name: 'scatter',
+            type: 'scatter',
+            label: {
+              emphasis: {
+                show: true
+              }
+            },
+            data: data
+          }, {
+            name: 'line',
+            type: 'line',
+            showSymbol: false,
+            data: myRegression.points,
+            markPoint: {
+              itemStyle: {
+                normal: {
+                  color: 'transparent'
+                }
+              },
+              label: {
+                normal: {
+                  show: true,
+                  formatter: LineLabel,
+                  textStyle: {
+                    color: '#333',
+                    fontSize: 14
+                  }
+                }
+              },
+              data: [{
+                coord: myRegression.points[myRegression.points.length - 1]
+              }]
+            }
+          }]
+        });
+
+        chart1.setOption({
+          title: {
+            text: 'LST',
+            left: 'center'
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross'
+            }
+          },
+          xAxis: {
+            type: 'value',
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            },
+          },
+          yAxis: {
+            type: 'value',
+            splitLine: {
+              lineStyle: {
+                type: 'dashed'
+              }
+            },
+          },
+          series: [{
+            name: 'scatter',
+            type: 'scatter',
+            label: {
+              emphasis: {
+                show: true
+              }
+            },
+            data: data1
+          }, {
+            name: 'line',
+            type: 'line',
+            showSymbol: false,
+            data: myRegression1.points,
+            markPoint: {
+              itemStyle: {
+                normal: {
+                  color: 'transparent'
+                }
+              },
+              label: {
+                normal: {
+                  show: true,
+                  formatter: LineLabel1,
+                  textStyle: {
+                    color: '#333',
+                    fontSize: 14
+                  }
+                }
+              },
+              data: [{
+                coord: myRegression1.points[myRegression1.points.length - 1]
+              }]
+            }
+          }]
+        });
+      },
+      error: function () {
+        //请求异常回调
+      },
+      accept: 'file'
+    });
+  });
+</script>
+
+</html>
